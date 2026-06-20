@@ -1,0 +1,79 @@
+API类型,每次调用费用 (限时促销价)
+Nano Banana,0.07元/次
+Nano Banana Pro,0.15元/次
+Hailuo_2.3_t2v_standard_5s,1.6元/次
+Hailuo_2.3_t2v_standard_10s,3.2元/次
+Hailuo_2.3_t2v_pro_6s,2.8元/次
+Hailuo_2.3_i2v_standard_6s,1.6元/次
+Hailuo_2.3_i2v_standard_10s,3.2元/次
+Hailuo_2.3_i2v_pro_6s,2.8元/次
+Hailuo-2.3-Fast_standard_6s,1.08元/次
+Hailuo-2.3-Fast_standard_10s,1.8元/次
+Hailuo-2.3-Fast_Pro_6s,1.85元/次
+Veo3.1-fast,0.3元/次
+Veo3.1-pro,2元/次
+Sora2-I2V,0.05元/次
+Sora2-T2V,0.05元/次
+Sora2-Pro_t2v_sandard_10s,2.7元/次
+Sora2-Pro_t2v_sandard_15s,4.9元/次
+Sora2-Pro_i2v_sandard_10s,2.7元/次
+Sora2-Pro_i2v_sandard_15s,4.9元/次
+Sora2-Pro_t2v_pro_10s,6元/次
+Sora2-Pro_t2v_pro_15s,11.7元/次
+Sora2-Pro_i2v_pro_10s,6元/次
+Sora2-Pro_i2v_pro_15s,11.7元/次
+Seedream4.0,0.15元/次
+Seedream4.5,0.25元/次
+Doubao-seededit-3.0_i2i,0.23元/次
+Kling2.6_t2v_5s_no audio_HD,2元/次
+Kling2.6_t2v_10s_no audio_HD,4元/次
+Kling2.6_t2v_5s_with audio_HD,4元/次
+Kling2.6_t2v_10s_with audio_HD,8元/次
+Kling2.6_i2v_5s_no audio_HD,2元/次
+Kling2.6_i2v_10s_no audio_HD,4元/次
+Kling2.6_i2v_5s_with audio_HD,4元/次
+Kling2.6_i2v_10s_with audio_HD,8元/次
+Kling2.5_t2v_5s,1.6元/次
+Kling2.5_t2v_10s,3.2元/次
+Kling2.5_i2v_5s,1.6元/次
+Kling2.5_i2v_10s,3.2元/次
+Kling2.1_t2v_master_5s,5.8元/次
+Kling2.1_t2v_master_10s,11.6元/次
+Kling2.1_i2v_master_5s,5.8元/次
+Kling2.1_i2v_master_10s,11.6元/次
+Kling2.1_t2v_std_5s,0.8元/次
+Kling2.1_t2v_std_10s,1.8元/次
+Kling2.1_t2v_pro_5s,1.8元/次
+Kling2.1_t2v_pro_10s,3.6元/次
+Kling2.1_i2v_std_5s,0.8元/次
+Kling2.1_i2v_std_10s,1.8元/次
+Kling2.1_i2v_pro_5s,1.8元/次
+Kling2.1_i2v_pro_10s,3.6元/次
+Kling2.0_t2v,0.1元/次
+Kling2.0_i2v,0.2元/次
+doubao-seedance-1-0-pro-fast-251015-t2v（输入）,4.2元/M tokens
+doubao-seedance-1-0-pro-fast-251015-t2v（输出）,4.2元/M tokens
+doubao-seedance-1-0-pro-fast-251015-i2v（输入）,4.2元/M tokens
+doubao-seedance-1-0-pro-fast-251015-i2v（输出）,4.2元/M tokens
+doubao-seedance-1-0-pro-250528-t2v（输入）,15元/M tokens
+doubao-seedance-1-0-pro-250528-t2v（输出）,15元/M tokens
+doubao-seedance-1-0-pro-250528-i2v（输入）,15元/M tokens
+doubao-seedance-1-0-pro-250528-i2v（输出）,15元/M tokens
+GPT-Image-1.0（1 Image Output）_1K/2K,0.15元/次
+GPT-Image-1.0（2 Image Output）_1K/2K,0.2元/次
+GPT-Image-1.0（4 Image Output）_1K/2K,0.28元/次
+Flux Kontext Pro,0.07元/次
+Flux Kontext Max,0.14元/次
+Flux.2 Pro, 0.12元/次
+Flux.2 Flex, 0.24元/次  
+wan2.5-t2v-preview_480P, 0.3元/秒
+wan2.5-t2v-preview_720P, 0.6元/秒
+wan2.5-t2v-preview_1080P, 1元/秒
+wan2.5-i2v-preview_480P, 0.3元/秒
+wan2.5-i2v-preview_720P, 0.6元/秒
+wan2.5-i2v-preview_1080P, 1元/秒
+wan2.6-t2v-preview_720P, 0.6元/秒
+wan2.6-t2v-preview_1080P, 1元/秒
+wan2.6-i2v-preview_720P, 0.6元/秒
+wan2.6-i2v-preview_1080P, 1元/秒
+

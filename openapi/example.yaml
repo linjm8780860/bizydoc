@@ -1,0 +1,197 @@
+openapi: 3.1.0
+info:
+  title: API Docs Starter
+  version: 1.0.0
+  description: 一个用于演示 Fumadocs OpenAPI 集成的接口定义。
+servers:
+  - url: https://api.example.com/v1
+    description: Production
+tags:
+  - name: text
+    x-displayName: 文本系列
+    description: 文本生成和对话能力
+  - name: image
+    x-displayName: 图像系列
+    description: 图像生成能力
+paths:
+  /chat/completions:
+    post:
+      tags:
+        - text
+      operationId: createChatCompletion
+      summary: 创建对话请求
+      description: 使用 OpenAI 兼容格式创建一次对话请求。
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatCompletionRequest'
+            examples:
+              simple:
+                summary: 简单对话
+                value:
+                  model: demo-chat
+                  messages:
+                    - role: user
+                      content: 你好，介绍一下你自己
+      responses:
+        '200':
+          description: 请求成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatCompletionResponse'
+        '401':
+          description: API Key 缺失或无效
+  /embeddings:
+    post:
+      tags:
+        - text
+      operationId: createEmbedding
+      summary: 创建嵌入请求
+      description: 将文本转换为向量表示。
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - model
+                - input
+              properties:
+                model:
+                  type: string
+                  example: demo-embedding
+                input:
+                  oneOf:
+                    - type: string
+                    - type: array
+                      items:
+                        type: string
+      responses:
+        '200':
+          description: 请求成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        embedding:
+                          type: array
+                          items:
+                            type: number
+                        index:
+                          type: integer
+  /images/generations:
+    post:
+      tags:
+        - image
+      operationId: createImage
+      summary: 创建图片生成请求
+      description: 根据提示词生成图片。
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - model
+                - prompt
+              properties:
+                model:
+                  type: string
+                  example: demo-image
+                prompt:
+                  type: string
+                  example: 一只机械感的白色台灯，产品摄影
+                size:
+                  type: string
+                  enum:
+                    - 1024x1024
+                    - 1024x768
+                    - 768x1024
+                  default: 1024x1024
+      responses:
+        '200':
+          description: 请求成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  images:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        url:
+                          type: string
+                          format: uri
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API Key
+  schemas:
+    ChatMessage:
+      type: object
+      required:
+        - role
+        - content
+      properties:
+        role:
+          type: string
+          enum:
+            - system
+            - user
+            - assistant
+        content:
+          type: string
+    ChatCompletionRequest:
+      type: object
+      required:
+        - model
+        - messages
+      properties:
+        model:
+          type: string
+          example: demo-chat
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatMessage'
+        stream:
+          type: boolean
+          default: false
+    ChatCompletionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          example: chatcmpl_123
+        model:
+          type: string
+        choices:
+          type: array
+          items:
+            type: object
+            properties:
+              index:
+                type: integer
+              message:
+                $ref: '#/components/schemas/ChatMessage'

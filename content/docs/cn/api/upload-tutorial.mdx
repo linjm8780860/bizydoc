@@ -1,0 +1,264 @@
+---
+title: 文件上传使用教程
+description: BizyAir 文件上传使用教程。
+---
+# 文件上传使用教程
+
+## 适用场景
+
+- **简介**: 本接口用于资源上传，支持上传图片、音频、视频等资源至 BizyAir 服务器。上传后的文件将可以被对应加载节点（如 LoadImage，LoadAudio 和 LoadVideo 等 ）加载，作为工作流的输入资源使用。
+
+本教程将带你完成一次从获取上传凭证到提交输入资源、查询列表的完整文件上传流程。读完你将能够：
+
+- 获取临时上传凭证与上传参数（endpoint/bucket/region/object_key）
+- 使用返回的 STS 凭证将文件上传到 OSS
+- 提交输入资源用于后续任务
+- 可选：查询已提交的输入资源列表
+---
+<Callout type="info" title="何时使用文件上传 API">
+
+- 需要将图片/音频/视频等资源作为工作流输入
+- 希望统一通过 BizyAir 存储并在节点间复用
+- 需要获得可在后续接口中引用的 `object_key`/`url`
+</Callout>
+
+## 前置准备
+
+- 已获取 BizyAir API Key（ `Authorization: Bearer {Your_ApiKey}` ）
+- 待上传的本地文件，例如 `./example.webp`
+- 推荐：使用阿里云官方 SDK 完成简单上传
+
+参考：[阿里云 OSS 简单上传（官方文档）](`https://help.aliyun.com/zh/oss/simple-upload#0c01e93253m42`)
+---
+<Callout type="info" title="关于凭证安全">
+
+返回的 `access_key_id/access_key_secret/security_token` 为临时凭证，请仅在上传环节使用并妥善保管，避免泄露至客户端或日志中。
+</Callout>
+
+## 步骤一：获取上传凭证与参数
+
+调用获取上传凭证接口，服务端会返回本次上传所需的 OSS 信息与临时 STS 凭证。
+
+```bash title="获取上传凭证 curl 示例" linenums="1"
+curl -G \
+  -H "Authorization: Bearer $APIKEY" \
+  --data-urlencode "file_name=example.webp" \
+  --data-urlencode "file_type=inputs" \
+  https://api.bizyair.cn/x/v1/upload/token
+```
+
+成功响应示例：
+
+```json title="获取上传凭证成功响应" linenums="1"
+{
+  "code": 20000,
+  "message": "Ok",
+  "status": true,
+  "data": {
+    "file": {
+      "object_key": "inputs/20250911/abc123.webp",
+      "access_key_id": "STS.xxxx",
+      "access_key_secret": "xxxx",
+      "security_token": "xxxx"
+    },
+    "storage": {
+      "endpoint": "oss-cn-shanghai.aliyuncs.com",
+      "bucket": "bizyair-prod",
+      "region": "oss-cn-shanghai"
+    }
+  }
+}
+```
+
+字段说明：
+
+- `object_key`：上传对象在 OSS 的 Key（后续提交时也需要）
+- `endpoint/bucket/region`：OSS 所在地域与访问域名、桶名
+- `access_key_id/access_key_secret/security_token`：阿里云 STS 临时凭证
+
+<Callout type="warning" title="文件名与扩展名">
+
+请确保 `file_name` 包含扩展名（例如 `example.webp`），服务端会据此判断 `ext` 与后续的内容类型。
+</Callout>
+---
+## 步骤二：使用 阿里云 OSS 简单上传
+
+使用上一步返回的 `endpoint/bucket/region/object_key` 与 STS 凭证将本地文件上传到 OSS。
+更详细信息参考：[阿里云 OSS 简单上传（官方文档）](`https://help.aliyun.com/zh/oss/simple-upload#0c01e93253m42`)
+
+### 方案 A：Python（alibaba cloud oss sdk）
+
+```python title="Python 上传函数" linenums="1"
+import os
+import alibabacloud_oss_v2 as oss
+
+def upload_to_oss(region: str, endpoint: str, bucket: str, object_key: str, file_path: str,
+                  access_key_id: str, access_key_secret: str, security_token: str):
+    os.environ["ALIBABA_CLOUD_ACCESS_KEY_ID"] = access_key_id
+    os.environ["ALIBABA_CLOUD_ACCESS_KEY_SECRET"] = access_key_secret
+    os.environ["ALIBABA_CLOUD_SECURITY_TOKEN"] = security_token
+
+    cfg = oss.config.load_default()
+    cfg.credentials_provider = oss.credentials.EnvironmentVariableCredentialsProvider()
+
+    normalized_region = region[4:] if region and region.startswith("oss-") else region
+    cfg.region = normalized_region
+    cfg.endpoint = endpoint or f"oss-{normalized_region}.aliyuncs.com"
+
+    client = oss.Client(cfg)
+    return client.put_object_from_file(
+        oss.PutObjectRequest(bucket=bucket, key=object_key),
+        file_path,
+    )
+```
+
+调用示例：
+
+```python title="Python 调用示例" linenums="1"
+resp = upload_to_oss(
+    region="oss-cn-shanghai",
+    endpoint="oss-cn-shanghai.aliyuncs.com",
+    bucket="bizyair-prod",
+    object_key="inputs/20250911/abc123.webp",
+    file_path="./example.webp",
+    access_key_id="STS.xxxx",
+    access_key_secret="xxxx",
+    security_token="xxxx",
+)
+print(resp)
+```
+
+注意：
+
+- 有些 SDK 需要去掉 `region` 的 `oss-` 前缀，如 `oss-cn-shanghai` → `cn-shanghai`
+- 建议同时设置 `region` 与 `endpoint`，以返回的 `endpoint` 为准
+
+<Callout type="idea" title="常见上传错误与排查">
+
+- 权限错误：STS 是否过期；`bucket/region/endpoint` 是否和返回一致
+- 地域不匹配：尝试移除 `oss-` 前缀，如 `oss-cn-shanghai` → `cn-shanghai`
+- 对象已存在或权限不足：检查目标路径与账号权限策略
+</Callout>
+
+### 方案 B：Node.js（ali-oss）
+
+```bash title="安装 ali-oss"
+npm i ali-oss
+```
+
+```javascript title="Node.js 上传函数" linenums="1"
+const OSS = require("ali-oss");
+
+async function uploadToOss({
+  region,
+  endpoint,
+  bucket,
+  objectKey,
+  filePath,
+  accessKeyId,
+  accessKeySecret,
+  securityToken,
+}) {
+  const normalizedRegion =
+    region && region.startsWith("oss-") ? region.slice(4) : region;
+  const client = new OSS({
+    region: normalizedRegion,
+    endpoint: endpoint || `oss-${normalizedRegion}.aliyuncs.com`,
+    accessKeyId,
+    accessKeySecret,
+    stsToken: securityToken,
+    bucket,
+  });
+  const result = await client.put(objectKey, filePath);
+  return result;
+}
+```
+---
+## 步骤三：提交输入资源
+
+当 OSS 上传成功后，提交本次输入资源，便于后续任务直接引用。
+
+```bash title="提交输入资源 curl 示例" linenums="1"
+curl -X POST \
+  -H "Authorization: Bearer $APIKEY" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"example.webp","object_key":"inputs/20250911/abc123.webp"}' \
+  https://api.bizyair.cn/x/v1/input_resource/commit
+```
+
+成功响应示例：
+
+```json title="提交输入资源成功响应" linenums="1"
+{
+  "code": 20000,
+  "message": "Ok",
+  "status": true,
+  "data": {
+    "id": 1711,
+    "name": "example.webp",
+    "ext": ".webp",
+    "url": "https://storage.bizyair.cn/inputs/20250911/abc123.webp"
+  }
+}
+```
+---
+## 步骤四（可选）：查询 inputs 列表
+
+```bash title="查询 inputs 列表 curl 示例" linenums="1"
+curl -G \
+  -H "Authorization: Bearer $APIKEY" \
+  --data-urlencode "current=1" \
+  --data-urlencode "page_size=20" \
+  https://api.bizyair.cn/x/v1/input_resource
+```
+
+成功响应示例：
+
+```json title="查询 inputs 列表成功响应" linenums="1"
+{
+  "code": 20000,
+  "message": "Ok",
+  "status": true,
+  "data": {
+    "list": [
+      {
+        "id": 1711,
+        "name": "example.webp",
+        "ext": ".webp",
+        "url": "https://storage.bizyair.cn/inputs/20250911/abc123.webp"
+      }
+    ],
+    "total": 1,
+    "current": 1,
+    "page_size": 20
+  }
+}
+```
+---
+## 常见问题（FAQ）
+
+<details>
+<summary>上传报权限错误？</summary>
+
+使用的 STS 凭证可能已过期；请核对 `bucket/region/endpoint` 与接口返回是否一致。
+
+</details>
+
+<details>
+<summary>SDK 报地域不匹配？</summary>
+
+将 `oss-cn-xxx` 规范化为 `cn-xxx` 并明确设置 `endpoint`。
+
+</details>
+
+<details>
+<summary>提交成功但访问 url 失败？</summary>
+
+资源可能有时效限制，建议上传后尽快消费或持久化保存；必要时检查访问控制策略。
+
+</details>
+---
+## 相关参考
+
+- 文件上传 参考参数与回调数据结构请见 [API 参考文档的 文件上传 章节](api-reference.md#_20)。
+---

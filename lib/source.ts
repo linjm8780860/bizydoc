@@ -1,0 +1,42 @@
+import { docs } from 'collections/server';
+import { loader } from 'fumadocs-core/source';
+import { lucideIconsPlugin } from 'fumadocs-core/source/lucide-icons';
+import { openapiPlugin } from 'fumadocs-openapi/server';
+import { i18n } from './i18n';
+import { docsContentRoute, docsImageRoute, docsRoute } from './shared';
+
+// See https://fumadocs.dev/docs/headless/source-api for more info
+export const source = loader({
+  baseUrl: docsRoute,
+  i18n,
+  source: docs.toFumadocsSource(),
+  plugins: [lucideIconsPlugin(), openapiPlugin()],
+});
+
+export function getPageImage(page: (typeof source)['$inferPage']) {
+  const segments = [...page.slugs, 'image.png'];
+  const locale = page.locale ?? i18n.defaultLanguage;
+
+  return {
+    segments,
+    url: `/${locale}${docsImageRoute}/${segments.join('/')}`,
+  };
+}
+
+export function getPageMarkdownUrl(page: (typeof source)['$inferPage']) {
+  const segments = [...page.slugs, 'content.md'];
+  const locale = page.locale ?? i18n.defaultLanguage;
+
+  return {
+    segments,
+    url: `/${locale}${docsContentRoute}/${segments.join('/')}`,
+  };
+}
+
+export async function getLLMText(page: (typeof source)['$inferPage']) {
+  const processed = await page.data.getText('processed');
+
+  return `# ${page.data.title} (${page.url})
+
+${processed}`;
+}

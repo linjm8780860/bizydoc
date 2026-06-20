@@ -1,0 +1,449 @@
+/* 自定义BizyAir页脚样式 */
+.md-footer {
+  background-color: transparent !important;
+  padding-top: 1.5rem;
+  padding-bottom: 0;
+}
+.md-footer__title {
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 0px;
+  max-width: calc(100% - 2rem);
+}
+.md-footer__direction {
+  opacity: 1;
+  font-size: 16px;
+  padding-right: 10px;
+}
+.md-footer-meta {
+  background-color: transparent !important;
+  padding: 0;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+}
+.md-footer__inner {
+  padding: 16px 0;
+  border-top: 1px solid #334155;
+  margin: 0 48px;
+}
+.md-footer-meta__inner {
+  padding: 0;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 60rem;
+  display: flex;
+  flex-direction: column;
+}
+.md-footer__link {
+  margin-top: 0;
+}
+.md-footer__button {
+  padding-left: 0;
+  padding-right: 0;
+}
+.bizy-footer {
+  width: 100%;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  padding-top: 0;
+  background-color: #020617;
+  padding-bottom: 10px;
+}
+
+.bizy-footer-container {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  flex-wrap: nowrap;
+  padding: 20px 70px 15px;
+  justify-content: center;
+  gap: 15rem;
+}
+
+/* 左侧Logo和社交图标栏 */
+.bizy-footer-section {
+  margin-right: 3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 120px;
+  flex-shrink: 0;
+}
+
+.bizy-footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.bizy-footer-logo img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
+.bizy-footer-brand-name {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #fff;
+}
+
+.bizy-footer-social-icons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.bizy-footer-social-icon {
+  color: #94a3b8;
+  transition: color 0.2s;
+  display: block;
+}
+
+.bizy-footer-social-icon:hover {
+  opacity: 0.8;
+}
+
+.bizy-footer-social-icon img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+}
+
+.bizy-footer-links {
+  display: flex;
+  justify-content: start;
+  gap: 6rem;
+  margin-right: 2rem;
+}
+
+.bizy-footer-column {
+  margin-bottom: 0;
+  min-width: 100px;
+}
+
+.bizy-footer-title {
+  font-size: 0.75rem;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #ffffff;
+}
+
+.bizy-footer-item {
+  font-size: 0.75rem;
+  margin-bottom: 0.3rem;
+  color: #94a3b8;
+}
+
+.bizy-footer-item a {
+  color: #94a3b8;
+  text-decoration: none;
+}
+
+.bizy-footer-item a:hover {
+  text-decoration: underline;
+}
+
+/* 二维码部分 */
+.bizy-footer-qrcode-container {
+  display: flex;
+  justify-content: flex-end;
+  gap: 20px;
+  flex-shrink: 0;
+  align-items: flex-start;
+}
+
+.bizy-footer-qrcode {
+  text-align: center;
+  width: 120px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 160px;
+}
+
+.bizy-footer-qrcode-text {
+  font-size: 0.6rem;
+  color: #94a3b8;
+  margin-bottom: 0.5rem;
+  height: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.bizy-footer-qrcode img {
+  width: 110px;
+  height: 110px;
+  object-fit: contain;
+  display: block;
+  max-width: 110px;
+  max-height: 110px;
+  margin: 0 auto;
+}
+
+.bizy-footer-mobile-links,
+.bizy-footer-contact-qrcode-container {
+  display: none;
+}
+
+.bizy-footer-copyright {
+  border-top: 1px solid #334155;
+  padding-top: 0.75rem;
+  padding-bottom: 0.5rem;
+  width: 100%;
+  background-color: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.bizy-footer-copyright p {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.bizy-footer-icp {
+  font-size: 0.75rem;
+}
+
+.bizy-footer-icp a {
+  color: #64748b;
+  text-decoration: none;
+}
+
+.bizy-footer-icp a:hover {
+  text-decoration: underline;
+}
+
+/* 确保移动设备上的响应式布局 */
+@media (max-width: 1024px) {
+  .bizy-footer-container {
+    flex-wrap: wrap;
+  }
+
+  .bizy-footer-links {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 2rem;
+  }
+
+  .bizy-footer-qrcode-container {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .md-footer-meta__inner {
+    width: 100%;
+    max-width: 100%;
+    padding: 0 20px;
+  }
+
+  .bizy-footer-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .bizy-footer-section {
+    width: 100%;
+    margin-bottom: 2rem;
+    margin-right: 0;
+  }
+
+  .bizy-footer-links {
+    display: none;
+  }
+
+  .bizy-footer-qrcode-container {
+    display: none;
+  }
+
+  /* 移动端布局元素显示 */
+  .bizy-footer-mobile-links {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    gap: 1rem;
+    margin-bottom: -1rem;
+  }
+
+  .bizy-footer-contact-qrcode-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+    gap: 1rem;
+    margin-bottom: -1rem;
+  }
+  /* 移动端两行对齐 */
+  .bizy-footer-mobile-links .bizy-footer-column:nth-child(1),
+  .bizy-footer-contact-qrcode-container .bizy-footer-column {
+    grid-column: 1;
+  }
+
+  .bizy-footer-mobile-links .bizy-footer-column:nth-child(2),
+  .bizy-footer-contact-qrcode-container .bizy-footer-qrcode:nth-child(2) {
+    grid-column: 2;
+  }
+
+  .bizy-footer-mobile-links .bizy-footer-column:nth-child(3),
+  .bizy-footer-contact-qrcode-container .bizy-footer-qrcode:nth-child(3) {
+    grid-column: 3;
+  }
+
+  .bizy-footer-contact-qrcode-container .bizy-footer-column {
+    text-align: left;
+    align-items: flex-start;
+  }
+  /* 邮箱地址不换行 */
+  .bizy-footer-contact-qrcode-container .bizy-footer-item a[href^="mailto"] {
+    white-space: nowrap;
+    display: inline-block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  /* 移动端二维码样式 */
+  .bizy-footer-contact-qrcode-container .bizy-footer-qrcode {
+    text-align: center;
+    width: 100%;
+    margin: 0;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .bizy-footer-contact-qrcode-container .bizy-footer-qrcode-text {
+    font-size: 0.75rem;
+    margin-bottom: 0.5rem;
+    height: auto;
+    display: block;
+  }
+
+  .bizy-footer-contact-qrcode-container .bizy-footer-qrcode img {
+    width: 80px;
+    height: 80px;
+    max-width: 80px;
+    max-height: 80px;
+    margin: 0 auto;
+  }
+
+  .bizy-footer-copyright {
+    flex-direction: row;
+    gap: 20px;
+    text-align: center;
+    width: 100%;
+    justify-content: center;
+    padding: 0.75rem 20px 0.5rem;
+    margin-top: 0;
+  }
+}
+
+/* 小屏幕设备的额外调整 */
+@media (max-width: 576px) {
+  .bizy-footer-mobile-links {
+    gap: 0.3rem;
+  }
+
+  .bizy-footer-contact-qrcode-container {
+    gap: 0.3rem;
+  }
+  /* 确保对齐一致 */
+  .bizy-footer-mobile-links .bizy-footer-column,
+  .bizy-footer-contact-qrcode-container .bizy-footer-column,
+  .bizy-footer-contact-qrcode-container .bizy-footer-qrcode {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 0;
+    margin: 0;
+  }
+
+  /* 社交图标居中 */
+  .bizy-footer-contact-qrcode-container
+    .bizy-footer-column
+    .bizy-footer-social-icons {
+    justify-content: center;
+  }
+
+  /* 调整标题间距 */
+  .bizy-footer-mobile-links .bizy-footer-column .bizy-footer-title,
+  .bizy-footer-contact-qrcode-container .bizy-footer-column .bizy-footer-title,
+  .bizy-footer-contact-qrcode-container
+    .bizy-footer-qrcode
+    .bizy-footer-qrcode-text {
+    margin-bottom: 0.2rem;
+  }
+
+  .bizy-footer-contact-qrcode-container .bizy-footer-qrcode img {
+    width: 70px;
+    height: 70px;
+    max-width: 70px;
+    max-height: 70px;
+  }
+
+  .bizy-footer-contact-qrcode-container .bizy-footer-qrcode-text {
+    font-size: 0.65rem;
+  }
+
+  .bizy-footer-copyright {
+    flex-direction: column;
+    gap: 10px !important;
+  }
+}
+
+/* 超小屏幕设备的额外调整 */
+@media (max-width: 480px) {
+  .bizy-footer-mobile-links,
+  .bizy-footer-contact-qrcode-container {
+    gap: 0.2rem;
+  }
+  /* 超小屏的竖向对齐 */
+  .bizy-footer-mobile-links .bizy-footer-column .bizy-footer-title,
+  .bizy-footer-contact-qrcode-container .bizy-footer-column .bizy-footer-title,
+  .bizy-footer-contact-qrcode-container
+    .bizy-footer-qrcode
+    .bizy-footer-qrcode-text {
+    width: 100%;
+    text-align: center;
+    min-height: 20px;
+    margin-bottom: 0.2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .bizy-footer-contact-qrcode-container .bizy-footer-item a[href^="mailto"] {
+    font-size: 0.6rem;
+  }
+
+  .bizy-footer-contact-qrcode-container .bizy-footer-qrcode img {
+    width: 60px;
+    height: 60px;
+    max-width: 60px;
+    max-height: 60px;
+  }
+
+  .bizy-footer-title {
+    font-size: 0.7rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .bizy-footer-item {
+    font-size: 0.65rem;
+    margin-bottom: 0.1rem;
+  }
+}

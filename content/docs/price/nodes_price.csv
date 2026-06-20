@@ -1,0 +1,33 @@
+节点, 参考时间(单位：秒）, 参考价格 BZ 币（每秒5BZ币）
+CogView4 文生图,27,135
+Trellis3D,暂无,
+Shuttle 4 步模型,3,15
+可图 Fill 替换人物、场景,暂无,
+可图 IPAdaptor,暂无,
+可图 Controlnet,暂无,
+可图文生图,暂无,
+SD3.5 Blur 去除模糊,24,120
+SD3.5 Controlnet Depth,24,120
+SD3.5 Controlnet Canny,24,120
+SD3.5 Turbo 快速 4steps 出图,4,20
+SD3.5 文生图,12,60
+SDXL InstantID 换脸,10,50
+SDXL IPAdaptor,10,50
+SDXL Controlnet,8,40
+SDXL LoRA（1个）,8,40
+SDXL 文生图,17,85
+JoyCaption3,1,5
+JoyCaption2,1,5
+JoyCaption,1,5
+图片放大工作流,暂无,
+Flux.1 Fill,17,85
+Flux.1 Redux,17,85
+Flux.1 Controlnet Depth,13,65
+Flux.1 Controlnet Canny,14,70
+Flux.1 PixelWave,12,60
+Flux.1 PuLID,8,40
+Flux.1 文生图,11,55
+Flux.1 LoRA(1个),21,105
+Flux.1 Schnell 4steps,2,10
+Wan 图生视频 480P,90,每个视频固定750
+FLux.1 Kontext,15,75

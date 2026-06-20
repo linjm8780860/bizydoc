@@ -1,0 +1,212 @@
+.md-main__inner {
+  margin: 0;
+  border-top: 1px solid #1e293b;
+  height: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0;
+}
+
+.md-content-wrapper {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: 1fr auto;
+  gap: 0;
+  min-height: 0;
+}
+.md-content {
+  padding-top: 3.2rem;
+  flex: 1;
+  min-height: calc(100vh - 2.2rem);
+  position: relative;
+  border: 1px solid #1e293b;
+  background-color: #1e293b66;
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.md-content::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("/assets/markdown_bg.png");
+  background-size: 100% 100%;
+  opacity: 0.6;
+  z-index: -1;
+  pointer-events: none;
+}
+.md-grid {
+  max-width: 100%;
+}
+.md-sidebar {
+  padding: 0;
+}
+
+/* secondary sidebar 在第一行第二列（content 右边） */
+.md-content-wrapper > .md-sidebar--secondary {
+  grid-column: 2;
+  grid-row: 1;
+}
+.md-header {
+  border-bottom: 1px solid #252e3b;
+}
+/* 导航 */
+.md-nav__link--active {
+  background-color: #6e29f6;
+}
+
+@media screen and (min-width: 1024px) {
+  .md-nav--primary > .md-nav__title {
+    visibility: hidden !important;
+  }
+}
+.md-nav--secondary > .md-nav__title {
+  margin-top: 10px;
+}
+.md-sidebar__inner {
+  padding-top: 30px;
+}
+.md-nav[data-md-level] > .md-nav__title {
+  visibility: visible;
+}
+.md-nav__link--passed {
+  background-color: transparent !important;
+  color: #f1f5f9;
+}
+.md-nav--secondary .md-nav__link--active {
+  color: #6e29f6;
+}
+.md-nav--secondary .md-nav__link[for]:focus,
+.md-nav--secondary .md-nav__link[for]:hover,
+.md-nav--secondary .md-nav__link[href]:focus,
+.md-nav--secondary .md-nav__link[href]:hover {
+  color: #6e29f6 !important;
+  background-color: transparent !important;
+}
+.md-nav__link[for]:focus,
+.md-nav__link[for]:hover,
+.md-nav__link[href]:focus,
+.md-nav__link[href]:hover {
+  color: var(--md-typeset-a-color);
+}
+.md-nav__link {
+  padding: 10px 32px;
+  overflow: hidden;
+  border-radius: 99px;
+  font-size: 14px;
+  line-height: 20px;
+  margin-top: 2px;
+}
+/* markdown */
+.md-typeset {
+  font-size: 14px;
+}
+.md-typeset h1 {
+  font-family: PingFang SC;
+  font-weight: 600;
+  font-style: Semibold;
+  font-size: 24px;
+  line-height: 26px;
+  color: #ffffff;
+}
+.md-typeset h2 {
+  font-family: PingFang SC;
+  font-weight: 600;
+  font-style: Semibold;
+  font-size: 16px;
+  line-height: 26px;
+  vertical-align: middle;
+  color: #f1f5f9;
+  border-left: 2px solid #6e29f6;
+  padding-left: 0.5rem;
+}
+.one-nav {
+  color: #94a3b8;
+  font-weight: 600;
+}
+/*滚动条*/
+html::-webkit-scrollbar {
+  width: 8px;
+}
+
+html::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  margin: 4px 0;
+}
+
+html::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  transition: all 0.3s;
+}
+
+html::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.05);
+}
+html:focus-within,
+html:hover {
+  scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.05);
+}
+.md-sidebar__scrollwrap:focus-within,
+.md-sidebar__scrollwrap:hover {
+  scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.05);
+}
+
+.md-content-wrapper > .bizy-footer-fullscreen {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  width: 100%;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  background-color: #020617;
+  transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out;
+}
+
+.md-content-wrapper > .bizy-footer-fullscreen.show {
+  max-height: 2000px;
+  opacity: 1;
+}
+/* 搜索框 */
+.md-search__form {
+  background-color: #ffffff1f;
+}
+
+/* 移动端响应式布局 */
+@media screen and (max-width: 76.1875em) {
+  .md-main__inner {
+    grid-template-columns: 1fr;
+  }
+
+  .md-content-wrapper {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+  }
+
+  .md-content-wrapper > .md-sidebar--secondary {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .md-content {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .md-content-wrapper > .bizy-footer-fullscreen {
+    grid-column: 1;
+    grid-row: 3;
+  }
+}
+.md-sidebar--secondary .md-sidebar__scrollwrap {
+  position: absolute;
+}

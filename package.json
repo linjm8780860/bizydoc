@@ -1,0 +1,38 @@
+{
+  "name": "fumadocs-api-docs",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "pnpm docs:sync-feishu && next build",
+    "build:local": "next build",
+    "docs:generate-api": "tsx scripts/generate-openapi.ts",
+    "docs:sync-feishu": "tsx scripts/sync-feishu-docs.ts",
+    "dev": "next dev",
+    "start": "next start",
+    "types:check": "fumadocs-mdx && next typegen && tsc --noEmit",
+    "postinstall": "fumadocs-mdx"
+  },
+  "dependencies": {
+    "fumadocs-core": "16.10.4",
+    "fumadocs-mdx": "15.0.12",
+    "fumadocs-openapi": "^11.0.2",
+    "fumadocs-ui": "16.10.4",
+    "lucide-react": "^1.16.0",
+    "next": "16.2.6",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "shiki": "^4.2.0",
+    "tailwind-merge": "^3.6.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.0",
+    "@types/mdx": "^2.0.13",
+    "@types/node": "^25.8.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "postcss": "^8.5.14",
+    "tailwindcss": "^4.3.0",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3"
+  }
+}

@@ -1,0 +1,257 @@
+---
+title: WebHook 使用教程
+description: BizyAir WebHook 使用教程。
+---
+# WebHook 使用教程
+
+## 适用场景
+
+- **它是什么**: WebHook 是由 BizyAir 主动把 API 调用的任务结果以 HTTP POST 推送到你提供的回调 URL 的机制，省去你在客户端或服务端阻塞等待的麻烦。
+- **它能解决的问题**: 把“等待结果”的责任从客户端移到后端；避免长时间占用连接；当任务完成时第一时间收到完整结果。
+
+<Callout type="info" title="快速判断是否适合使用">
+
+- 任务耗时较长，不想阻塞客户端等待
+- 希望在任务完成后由服务端异步处理
+- 能提供稳定、公网可达的回调地址（建议使用 HTTPS）
+</Callout>
+
+本教程将带你从零搭建一个可接收回调的服务，并通过设置 `X-BizyAir-Task-WebHook-Url` 以异步获得任务结果。你将能够：
+
+- 启用 WebHook 模式并拿到 `requestId`
+- 在自己的服务器上接收、验证并存储回调结果
+- 正确返回 200 以避免云端重复重试
+---
+## 前置准备
+
+- 已获取 BizyAir API Key（ `Authorization: Bearer {Your_ApiKey}` ）
+- 一台 **可以公网访问** 的回调服务（示例以云服务器为例）
+- 可选：用于校验回调来源的回调 Token，例如 `X-BizyAir-Task-Authorization: Bearer YOUR_CALLBACK_TOKEN`
+---
+<Callout type="warning" title="必须可公网访问并尽量使用 HTTPS">
+
+回调地址需要公网可达，且建议使用 `https://`，以确保数据在传输过程中被加密，避免被中间人篡改或窃取。
+</Callout>
+
+<Callout type="info" title="回调 Header 透传">
+
+任何以 `X-Bizyair-Task-` 为前缀的自定义 Header 会在回调中原样返回，可用于携带租户信息、签名等元数据。
+</Callout>
+
+## 步骤一：启动一个回调服务
+
+你可以用任意后端框架，这里给出两种极简示例（任选其一）。
+
+### 方案 A：Node.js（Express）
+
+```bash title="初始化 Node 服务"
+npm init -y && npm i express body-parser
+```
+
+```javascript title="server.js" linenums="1"
+// server.js
+const express = require("express");
+const bodyParser = require("body-parser");
+
+const app = express();
+app.use(bodyParser.json());
+
+// 如果设置了 X-BizyAir-Task-Authorization: Bearer YOUR_CALLBACK_TOKEN
+const EXPECTED_TOKEN = process.env.CALLBACK_TOKEN; // 可选
+
+app.post("/api/callback", (req, res) => {
+  const auth = req.get("Authorization");
+  if (EXPECTED_TOKEN) {
+    const ok =
+      auth &&
+      auth.startsWith("Bearer ") &&
+      auth.split(" ")[1] === EXPECTED_TOKEN;
+    if (!ok) return res.status(401).json({ message: "invalid callback token" });
+  }
+
+  const payload = req.body;
+  // 这里进行幂等处理：依赖 payload.request_id 做去重
+  // TODO: 将结果写入数据库/消息队列等
+  console.log("Received callback:", payload);
+
+  // 必须返回 200，避免重试
+  res.status(200).json({ ok: true });
+});
+
+const port = process.env.PORT || 3000;
+app.listen(port, () => console.log(`Callback server listening on :${port}`));
+```
+
+运行：
+
+```bash title="运行回调服务"
+CALLBACK_TOKEN=YOUR_CALLBACK_TOKEN node server.js
+```
+
+### 方案 B：Python（Flask）
+
+```bash title="安装 Flask"
+pip install flask
+```
+
+```python title="app.py" linenums="1"
+# app.py
+import os
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+EXPECTED_TOKEN = os.getenv('CALLBACK_TOKEN')  # 可选
+
+@app.post('/api/callback')
+def callback():
+    auth = request.headers.get('Authorization')
+    if EXPECTED_TOKEN:
+        ok = auth and auth.startswith('Bearer ') and auth.split(' ')[1] == EXPECTED_TOKEN
+        if not ok:
+            return jsonify({'message': 'invalid callback token'}), 401
+
+    payload = request.get_json(silent=True) or {}
+    # 幂等处理：用 payload.get('request_id') 做去重
+    # TODO: 写入数据库/消息队列
+    print('Received callback:', payload)
+
+    # 必须返回 200
+    return jsonify({'ok': True}), 200
+
+if __name__ == '__main__':
+    port = int(os.getenv('PORT', '3000'))
+    app.run(host='0.0.0.0', port=port)
+```
+
+运行：
+
+```bash title="运行 Flask 回调服务"
+CALLBACK_TOKEN=YOUR_CALLBACK_TOKEN python app.py
+```
+---
+## 步骤二：以 WebHook 模式发起任务
+
+在原本的 API 请求 Headers 中加入 `X-BizyAir-Task-WebHook-Url` 即可启用异步回调：
+
+```bash title="以 WebHook 模式发起任务" linenums="1"
+# Shell 示例代码
+curl -X POST "https://api.bizyair.cn/w/v1/webapp/task/openapi/create" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "X-BizyAir-Task-WebHook-Url: https://your-server.com/api/callback" \
+  -H "X-BizyAir-Task-Authorization: Bearer YOUR_CALLBACK_TOKEN" \
+  -d '{
+  "web_app_id": 35661,
+  "suppress_preview_output": false,
+  "input_values": {
+    "1:EmptyLatentImage.width": "1024",
+    "1:EmptyLatentImage.height": "1024",
+    "2:BizyAir_BasicScheduler.steps": "20",
+    "3:BizyAir_RandomNoise.noise_seed": "1",
+    "4:BizyAirSiliconCloudLLMAPI.user_prompt": "小猫，梵高风格",
+    "4:BizyAirSiliconCloudLLMAPI.system_prompt": "你是一个 stable diffusion prompt 专家，为我生成适用于 Stable Diffusion 模型的prompt。 我给你相关的单词，你帮我扩写为适合 Stable Diffusion 文生图的 prompt。要求： 1. 英文输出 2. 除了 prompt 外，不要输出任何其它的信息 "
+  }
+}'
+```
+
+<Callout type="warning" title="回调 URL 写法">
+
+- `X-BizyAir-Task-Authorization` 为可选Headers
+- 如callback地址需要权限，可以通过 `X-BizyAir-Task-Authorization` 配置权限的请求头
+</Callout>
+
+成功后服务会立即返回 `202 Accepted` 与 `requestId`：
+
+```json title="请求接受后的同步响应示例" linenums="1"
+{
+  "requestId": "29f53793-12d3-4dd3-b2a8-4d9848e0c7da"
+}
+```
+---
+## 步骤三：接收回调与校验
+
+在执行完工作流任务后 BizyAir 会回调之前请求中给出的 `X-BizyAir-Task-WebHook-Url`，发送任务执行的结果，回调的具体内容如下
+
+- 回调 Method：`POST`
+- 回调 Headers：`Content-Type: application/json` ，以及你在初始请求设置的 `Authorization` / 自定义 `X-Bizyair-Task-*`
+- 回调 Body（示例）：
+
+```json title="回调 Body 示例" linenums="1"
+{
+  "type": "API",
+  "status": "Success",
+  "created_at": "2025-09-09 11:00:26",
+  "updated_at": "2025-09-09 11:00:37",
+  "executed_at": "2025-09-09 11:00:26",
+  "running_at": "2025-09-09 11:00:26",
+  "ended_at": "2025-09-09 11:00:37",
+  "expired_at": "2025-09-24 00:00:00",
+  "request_id": "29f53793-12d3-4dd3-b2a8-4d9848e0c7da",
+  "outputs": [
+    {
+      "object_url": "https://storage.bizyair.cn/outputs/...",
+      "output_ext": ".png",
+      "cost_time": 10657,
+      "audit_status": 2,
+      "error_type": "NOT_ERROR"
+    }
+  ],
+  "cost_times": {
+    "inference_cost_time": 10670,
+    "running_cost_time": 10956,
+    "total_cost_time": 10965,
+    "real_cpu_cost_time": 222,
+    "real_total_cost_time": 9887,
+    "real_bizyair_cost_time": 9665
+  }
+}
+```
+
+<Callout type="info" title="幂等与安全最佳实践">
+
+- 使用 `request_id` 做幂等去重，避免重复入库或重复执行
+- 若设置了 `X-BizyAir-Task-Authorization`，在回调服务校验该 Token
+- 回调中如含产出物 `object_url`，请在有效期内尽快拉取并做好持久化
+</Callout>
+
+<Callout type="warning" title="重试与应答要求">
+
+回调端务必在处理完成后返回 `HTTP 200 OK`。若返回非 200、超时或无响应，平台会按策略重试（约每 6 秒一次，最多 10 次）。
+</Callout>
+
+## 常见问题（FAQ）
+
+<details>
+<summary>为何收到多次相同回调？</summary>
+
+你的服务未及时返回 `200 OK` 或超时，平台会按策略重试。请确保快速应答，并用 `request_id` 做幂等。
+
+</details>
+
+<details>
+<summary>如何验证回调来源？</summary>
+
+在初始请求中设置 `X-BizyAir-Task-Authorization: Bearer <token>`，并在回调服务中比对该 token 是否一致。
+
+</details>
+
+<details>
+<summary>回调成功，但下载结果失败？</summary>
+
+检查 `outputs[].object_url` 是否过期或访问受限；建议尽快拉取并持久化，避免链接过期导致下载失败。
+
+</details>
+---
+## 相关参考
+
+- WebHook 参考参数与回调数据结构请见 **[API 参考文档的 WebHook 章节](api-reference.md#webhook)** 。
+---
+## 其他有关接口
+
+- 查询任务状态：当需要了解某个任务当前所处阶段（Queuing/Running/Success/Failed）及相关元数据时，可调用“查询任务状态”接口。详见 **[API 参考文档的 查询任务状态](api-reference.md#_8)** 。
+
+- 查询任务结果：当任务状态为 Success 后，可调用“查询任务结果”接口以获取产出物（如 `object_url` 等）。详见 **[API 参考文档的 查询任务结果](api-reference.md#_11)** 。
+
+- 取消任务：当任务仍在排队时，可调用“取消任务”接口移出队列。详见 **[API 参考文档的 取消任务](api-reference.md#_14)** 。
+
+- 中断任务：当任务正在运行时，可调用“中断任务”接口强制停止。详见 **[API 参考文档的 中断任务](api-reference.md#_17)** 。

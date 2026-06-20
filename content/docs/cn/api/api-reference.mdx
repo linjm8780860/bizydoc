@@ -1,0 +1,560 @@
+---
+title: API 参考
+description: BizyAir API 参考文档。
+---
+# API 参考
+
+## 任务调用方式
+
+BizyAir API 支持三种任务调用方式，您可以根据业务场景选择最适合的模式。
+
+| 模式         | 描述                                      | 适用场景                               |
+| :----------- | :---------------------------------------- | :------------------------------------- |
+| 同步阻塞 | 请求保持连接直到任务完成。                | 短耗时任务、简单调试。                 |
+| **[异步查询](asynctask-tutorial.md)** | 提交后立即返回 ID，需客户端轮询查结果。   | 无法维持长连接、无公网回调地址的场景。 |
+| **[WebHook](webhook-tutorial.md)**  | 提交后立即返回 ID，结果通过回调主动推送。 | 生产环境、长耗时任务、高并发场景。     |
+
+<Callout type="warning" title="优先级说明">
+
+当请求 Header 中同时包含 `X-Bizyair-Task-Async: enable` (异步查询) 和 `X-BizyAir-Task-WebHook-Url` (WebHook) 时，**WebHook 模式优先级更高**。系统将忽略异步查询标识，按照 WebHook 模式处理。
+</Callout>
+---
+## 同步阻塞
+
+同步阻塞是 BizyAir API 的 **默认调用方式** 。如果您直接使用从官网复制的 API 调用代码，且未手动添加任何特殊 Header（如 `X-Bizyair-Task-Async` 或 `X-BizyAir-Task-WebHook-Url`），系统将默认按此模式处理。
+
+### 模式特点
+
+- **默认行为**: 无需额外配置，开箱即用。
+- **长连接**: 客户端发起请求后，连接会保持打开状态（Keep-Alive），直到服务端完成任务并返回最终结果。
+- **即时响应**: 适合耗时较短的任务，通过一次请求即可直接拿到结果，无需轮询。
+
+### 注意事项
+
+<Callout type="info" title="超时设置">
+
+由于同步模式需要保持连接，请确保您的 HTTP 客户端（如 `curl`, `requests`, `axios` 等）设置了足够的 **读取超时时间 (Read Timeout)** ，建议至少设置为 60 秒+，以免在任务执行过程中客户端主动断开连接。
+</Callout>
+------
+## 异步查询
+
+异步查询模式允许您提交任务后立即断开连接（获得 `requestId`），随后通过主动轮询接口来获取任务进度和结果。
+
+### 启用异步查询模式
+
+在调用 BizyAir API 的 HTTP Header 中加入 `X-Bizyair-Task-Async` 即可启用此模式。
+
+#### 请求示例
+
+```bash title="启用异步查询示例"
+curl -X POST "https://api.bizyair.cn/w/v1/webapp/task/openapi/create" \
+  -H "Authorization: Bearer {BIZYAIR_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -H "X-Bizyair-Task-Async: enable" \ #添加此header来启用异步查询模式
+  -d '{...}'
+```
+
+**描述:** 标记该请求为异步查询模式。
+
+#### 响应
+
+服务器会立即响应 `HTTP 202 Accepted` 并返回一个 `requestId`，表示任务已接收。
+
+##### 响应体 (示例)
+
+```json title="202 Accepted 响应示例" linenums="1"
+{
+"requestId": "29f53793-12d3-4dd3-b2a8-4d9848e0c7da"
+}
+```
+---
+## WebHook
+
+WebHook 模式用于异步接收工作流任务结果，适用于耗时较长的调用。任务完成后，API 会向您指定的 URL 发送一个 POST 请求，推送最终结果。
+---
+### 启用 WebHook 模式
+
+在原来同步调用 BizyAir API 请求的 HTTP Header 中加入 `X-BizyAir-Task-WebHook-Url` 以启用 WebHook 模式。
+
+<Callout type="info" title="回调地址与安全">
+
+- 回调 URL 必须公网可达，建议使用 `https://` 提升传输安全
+- 可设置 `X-BizyAir-Task-Authorization: Bearer <token>`，在回调服务端比对以验证来源
+- 任何以 `X-Bizyair-Task-` 为前缀的自定义 Header 都会在回调时原样返回，便于透传租户/签名等元信息
+</Callout>
+
+#### 请求示例
+
+```bash title="启用 WebHook 示例"
+curl -X POST "https://api.bizyair.cn/w/v1/webapp/task/openapi/create" \
+  -H "Authorization: Bearer {BIZYAIR_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -H "X-BizyAir-Task-WebHook-Url: https://your-server.com/api/callback" \
+  -H "X-BizyAir-Task-Authorization: Bearer {your-token}" \
+  -d '{...}'
+```
+
+**Header 说明:**
+
+- `X-BizyAir-Task-WebHook-Url`: (必需) 接收任务结果的回调 URL。
+- `X-BizyAir-Task-Authorization`: (可选) 自定义回调请求的 `Authorization` 头，用于验证回调来源。
+- `X-Bizyair-Task-*`: (可选) 任何以 `X-Bizyair-Task-` 为前缀的 Header 都会在回调时原样返回。
+---
+#### 响应
+
+服务器会立即响应  `HTTP 202 Accepted`  并返回一个  `requestId`，表示任务已接收。
+
+##### 响应体 (示例)
+
+```json title="202 Accepted 响应示例" linenums="1"
+{
+  "requestId": "29f53793-12d3-4dd3-b2a8-4d9848e0c7da"
+}
+```
+
+<Callout type="info" title="关于 202 Accepted 与 requestId">
+
+同步返回 `202 Accepted` 表示任务已排队受理；`requestId` 用于后续查询任务状态/结果或取消/中断操作。
+</Callout>
+---
+### 回调请求与数据结构
+
+任务处理完成后，BizyAir API 服务器会向您在  `X-BizyAir-Task-WebHook-Url`  中指定的地址发起一个  `POST`  请求。
+
+#### 回调请求格式
+
+- **Method:** `POST`
+- **Headers:**
+  - `Content-Type: application/json`
+  - `User-Agent: Go-http-client/1.1`
+  - 以及您在初始请求中若设置了的  `X-BizyAir-Task-Authorization` 和其他自定义  `X-Bizyair-Task-*` Header。
+
+<Callout type="info" title="幂等与来源校验建议">
+
+- 使用 `request_id` 做幂等，避免重复入库/重复处理
+- 若设置了 `X-BizyAir-Task-Authorization`，请在回调服务中严格校验该 Token
+</Callout>
+
+#### 回调请求体 (示例)
+
+```json title="回调请求体示例" linenums="1"
+{
+  "type": "API",
+  "status": "Success",
+  "created_at": "2025-09-09 11:00:26",
+  "updated_at": "2025-09-09 11:00:37",
+  "executed_at": "2025-09-09 11:00:26",
+  "running_at": "2025-09-09 11:00:26",
+  "ended_at": "2025-09-09 11:00:37",
+  "expired_at": "2025-09-24 00:00:00",
+  "request_id": "29f53793-12d3-4dd3-b2a8-4d9848e0c7da",
+  "outputs": [
+    {
+      "object_url": "https://storage.bizyair.cn/outputs/...",
+      "output_ext": ".png",
+      "cost_time": 10657,
+      "audit_status": 2,
+      "error_type": "NOT_ERROR"
+    }
+  ],
+  "cost_times": {
+    "inference_cost_time": 10670,
+    "running_cost_time": 10956,
+    "total_cost_time": 10965,
+    "real_cpu_cost_time": 222,
+    "real_total_cost_time": 9887,
+    "real_bizyair_cost_time": 9665
+  }
+}
+```
+---
+#### 回调请求体字段详细说明
+
+##### 根字段
+
+| 字段名        | 类型   | 说明                                                  |
+| ------------- | ------ | ----------------------------------------------------- |
+| `type`        | string | 任务类型，例如  `"API"` 。                            |
+| `status`      | string | 任务的最终状态，例如  `"Success"` 或  `"Failed"` 。   |
+| `created_at`  | string | 任务创建时间 (UTC+8)。                                |
+| `updated_at`  | string | 任务最后更新时间 (UTC+8)。                            |
+| `executed_at` | string | 任务开始执行时间 (UTC+8)。                            |
+| `running_at`  | string | 任务进入运行状态时间 (UTC+8)。                        |
+| `ended_at`    | string | 任务结束时间 (UTC+8)。                                |
+| `expired_at`  | string | 结果文件过期时间 (UTC+8)。                            |
+| `request_id`  | string | 唯一的任务请求 ID，与初始响应中的  `requestId` 对应。 |
+| `outputs`     | array  | 核心结果对象数组，包含一个或多个任务产出物。          |
+| `cost_times`  | object | 耗时详情对象，包含任务各阶段的详细耗时。              |
+---
+##### `outputs`  数组内对象说明
+
+| 字段名         | 类型    | 说明                                                                   |
+| -------------- | ------- | ---------------------------------------------------------------------- |
+| `object_url`   | string  | 任务生成的结果文件访问 URL。                                           |
+| `output_ext`   | string  | 结果文件的扩展名 (包含  `.` )。                                        |
+| `cost_time`    | integer | 从任务开始到产出此结果的耗时，单位为毫秒 (ms)。                        |
+| `audit_status` | integer | 审核状态。`0`: 未审核, `1`: 审核通过, `2`: 审核不通过, `3`: 任务报错。 |
+| `error_type`   | string  | 错误类型。如果任务成功则为  `"NOT_ERROR"` ，失败时则为具体的错误码。   |
+| `error_msg`    | string  | (可选) 详细的错误信息。仅当任务失败时出现。                            |
+---
+##### `cost_times`  对象说明
+
+这是一个包含任务各阶段详细耗时的对象，所有时间单位均为毫秒 (ms)。
+
+| 字段名                   | 类型    | 说明                   |
+| ------------------------ | ------- | ---------------------- |
+| `inference_cost_time`    | integer | 推理耗时。             |
+| `running_cost_time`      | integer | 运行总耗时。           |
+| `total_cost_time`        | integer | 任务总耗时。           |
+| `real_cpu_cost_time`     | integer | 实际 CPU 耗时。        |
+| `real_total_cost_time`   | integer | 实际总耗时。           |
+| `real_bizyair_cost_time` | integer | 内部系统实际处理耗时。 |
+
+<Callout type="warning" title="必须返回 200 OK">
+
+回调处理完成后务必返回 `HTTP 200 OK`。若返回非 200、超时或无响应，平台会按策略重试（约每 6 秒一次，最多 10 次）。
+单次回调请求的超时时间约为 10 秒。
+</Callout>
+---
+## 查询任务状态
+
+本接口用于获取特定任务的当前状态和详细元数据，例如排队信息、运行时长等。
+
+### 请求示例
+
+```bash title="查询任务状态"
+curl -X GET "https://api.bizyair.cn/w/v1/webapp/task/openapi/detail?requestId={requestId}" \
+  -H "Authorization: Bearer {BIZYAIR_API_KEY}"
+```
+
+### 参数说明
+
+- `requestId`: (Query, Required) 要查询的任务 ID。
+
+### 成功响应 (示例)​
+
+```json title="查询任务状态成功响应" linenums="1"
+{
+  "code": 20000,
+  "message": "Ok",
+  "status": true,
+  "data": {
+    "type": "API",
+    "status": "Running",
+    "created_at": "2025-09-10 10:30:00",
+    "updated_at": "2025-09-10 10:30:15",
+    "executed_at": "2025-09-10 10:30:05",
+    "ended_at": null,
+    "expired_at": "2025-09-25 00:00:00",
+    "inference_cost_time": 10,
+    "queueInfo": null
+  }
+}
+```
+
+### 响应体  `data` 字段说明
+
+| 字段                  | 类型    | 描述                                                                             |
+| --------------------- | ------- | -------------------------------------------------------------------------------- |
+| `type`                | string  | 任务类型。                                                                       |
+| `status`              | string  | 任务当前状态，详见下方 **状态枚举**。                                            |
+| `created_at`          | string  | 任务创建时间。                                                                   |
+| `updated_at`          | string  | 任务最后更新时间。                                                               |
+| `executed_at`         | string  | 任务开始运行时间。                                                               |
+| `ended_at`            | string  | 任务结束时间，若未结束则为  `null` 。                                            |
+| `expired_at`          | string  | 任务记录的过期删除时间。                                                         |
+| `inference_cost_time` | integer | 推理耗时（秒）。如果任务正在运行，该值会动态变化。                               |
+| `queueInfo`           | object  | 仅当  `status`  为  `Queuing`  时出现，包含排队信息，如  `{"queue_count": 0}` 。 |
+
+#### 任务状态枚举 (status)
+
+| 状态值      | 说明                                                       | 后续动作建议                                                    |
+| :---------- | :--------------------------------------------------------- | :-------------------------------------------------------------- |
+| `Queuing`   | **排队中**。任务已提交，正在等待计算资源调度。             | 继续轮询。可通过 `queueInfo` 查看排队情况。                     |
+| `Preparing` | **准备中**。任务已被调度，正在准备运行环境（如加载模型）。 | 继续轮询。通常持续时间较短。                                    |
+| `Running`   | **运行中**。任务正在执行。                                 | 继续轮询。                                                      |
+| `Success`   | **成功**。任务执行完毕且无错误。                           | **停止轮询**。调用 [查询任务结果]接口获取产出。 |
+| `Failed`    | **失败**。任务执行出错。                                   | **停止轮询**。检查错误信息。                                    |
+| `Canceled`  | **已取消**。任务被用户主动取消。                           | **停止轮询**。                                                  |
+
+<Callout type="info" title="关于 `ended_at` 与 `queueInfo`">
+
+- `ended_at` 在任务未结束时可能为 `null`
+- `queueInfo` 仅在 `status=Queuing` 时出现，用于提示排队信息
+</Callout>
+---
+## 查询任务结果
+
+本接口用于获取 **已成功完成任务** 的产出物信息，例如结果文件的下载链接等。
+
+<Callout type="warning" title="仅 Success 才包含 outputs">
+
+当任务状态为 `Success` 时，`data.outputs` 才会有产出物；失败时请依据 `error_type/error_msg` 进行排查。
+</Callout>
+
+### 请求示例
+
+```bash title="查询任务结果"
+curl -X GET "https://api.bizyair.cn/w/v1/webapp/task/openapi/outputs?requestId={requestId}" \
+  -H "Authorization: Bearer {BIZYAIR_API_KEY}"
+```
+
+### 参数说明
+
+- `requestId`: (Query, Required) 要查询的任务 ID。
+
+### 成功响应 (示例)​
+
+```json title="查询任务结果成功响应" linenums="1"
+{
+  "code": 20000,
+  "message": "Ok",
+  "status": true,
+  "data": {
+    "request_id": "29f53793-12d3-4dd3-b2a8-4d9848e0c7da",
+    "status": "Success",
+    "outputs": [
+      {
+        "object_url": "https://storage.bizyair.cn/outputs/...",
+        "output_ext": ".png",
+        "cost_time": 10657,
+        "audit_status": 2,
+        "error_type": "NOT_ERROR"
+      }
+    ]
+  }
+}
+```
+
+### 响应体  `data.outputs` 数组内对象说明
+
+| 字段           | 类型    | 描述                                                       |
+| -------------- | ------- | ---------------------------------------------------------- |
+| `object_url`   | string  | 结果文件的可访问 URL 。                                    |
+| `output_ext`   | string  | 结果文件的扩展名 。                                        |
+| `cost_time`    | integer | 从任务开始到产出此结果的耗时（毫秒）。                     |
+| `audit_status` | integer | 审核状态。`1`: 未审核, `2`: 通过, `3`: 不通过, `4`: 报错。 |
+| `error_type`   | string  | 失败类型，仅当任务失败时有值。                             |
+| `error_msg`    | string  | (可选) 失败的详细原因，仅当任务失败时有值。                |
+---
+## 取消任务
+
+本接口用于将一个 **尚未开始运行（仍在排队中）** 的任务从队列中移除。
+
+<Callout type="warning" title="仅对排队中任务生效">
+
+若任务已进入运行态，请使用“中断任务”。取消操作应使用 `requestId` 幂等调用，重复取消不会产生副作用。
+</Callout>
+
+### 请求示例
+
+```bash title="取消任务"
+curl -X PUT "https://api.bizyair.cn/w/v1/webapp/task/openapi/cancel?requestId={requestId}" \
+  -H "Authorization: Bearer {BIZYAIR_API_KEY}" \
+  -H "Content-Type: application/json"
+```
+
+### 参数说明
+
+- `requestId`: (Query, Required) 要取消的任务 ID。
+
+### 成功响应 (示例)​
+
+操作成功时，HTTP 状态码为 200，响应体如下：
+
+```json title="取消任务成功响应" linenums="1"
+{
+  "code": 20000,
+  "message": "Ok",
+  "status": true,
+  "data": {}
+}
+```
+---
+## 中断任务
+
+本接口用于强制停止一个 **正在运行中** 的任务。
+
+<Callout type="warning" title="仅对运行中任务生效">
+
+中断仅对 `Running` 任务有效；若任务尚未运行，请改用“取消任务”。
+</Callout>
+
+### 请求示例
+
+```bash title="中断任务"
+curl -X PUT "https://api.bizyair.cn/w/v1/webapp/task/openapi/interrupt?requestId={requestId}" \
+  -H "Authorization: Bearer {BIZYAIR_API_KEY}" \
+  -H "Content-Type: application/json"
+```
+
+### 参数说明
+
+- `requestId`: (Query, Required) 要中断的任务 ID。
+
+### 成功响应 (示例)
+
+操作成功时，HTTP 状态码为 200，响应体如下：
+
+```json title="中断任务成功响应" linenums="1"
+{
+  "code": 20000,
+  "message": "Ok",
+  "status": true,
+  "data": {}
+}
+```
+
+## 文件上传
+
+本节提供与文件上传相关的接口定义：
+
+- 获取上传凭证与参数：GET `https://api.bizyair.cn/x/v1/upload/token`
+- 提交输入资源：POST `https://api.bizyair.cn/x/v1/input_resource/commit`
+- 查询 inputs 列表：GET `https://api.bizyair.cn/x/v1/input_resource`
+
+### 获取上传凭证与参数
+
+#### 请求示例
+
+```bash title="获取上传凭证"
+curl -X GET "https://api.bizyair.cn/x/v1/upload/token?file_name=example.webp&file_type=inputs" \
+  -H "Authorization: Bearer {BIZYAIR_API_KEY}"
+```
+
+#### 参数说明
+
+- `file_name`: (Query, Required) 要上传的原始文件名（包含扩展名）。
+- `file_type`: (Query, Required) 固定传 `inputs`。
+
+<Callout type="warning" title="文件名与类型">
+
+- `file_type` 目前固定传 `inputs`
+- `file_name` 需包含扩展名（如 `example.webp`），用于判断 `ext`
+- 返回的 STS 凭证为临时凭证，请勿长期保存或暴露在前端
+</Callout>
+
+#### 成功响应 (示例) ​
+
+```json title="获取上传凭证成功响应" linenums="1"
+{
+  "code": 20000,
+  "message": "Ok",
+  "status": true,
+  "data": {
+    "file": {
+      "object_key": "inputs/20250911/abc123.webp",
+      "access_key_id": "STS.xxxx",
+      "access_key_secret": "xxxx",
+      "security_token": "xxxx"
+    },
+    "storage": {
+      "endpoint": "oss-cn-shanghai.aliyuncs.com",
+      "bucket": "bizyair-prod",
+      "region": "oss-cn-shanghai"
+    }
+  }
+}
+```
+
+#### 响应体字段说明
+
+- `object_key`：作为 OSS 对象的 Key
+- `endpoint/bucket/region`：OSS 上传所需的存储信息
+- `access_key_id/access_key_secret/security_token`：阿里云 STS 临时凭证
+---
+### 提交输入资源
+
+当 OSS 上传成功后，调用：
+
+<Callout type="info" title="提交前自检清单">
+
+- 确保 `object_key` 与上传时返回的一致
+- 若需要长期访问，请在提交后尽快消费并做持久化
+</Callout>
+
+#### 请求示例
+
+```bash title="提交输入资源"
+curl -X POST "https://api.bizyair.cn/x/v1/input_resource/commit" \
+  -H "Authorization: Bearer {BIZYAIR_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "example.webp",
+    "object_key": "inputs/20250911/abc123.webp"
+  }'
+```
+
+#### 参数说明
+
+- `name`: (Body, Required) 原始文件名。
+- `object_key`: (Body, Required) 上传成功后获得的 OSS Key。
+
+#### 成功响应 (示例) ​
+
+```json title="提交输入资源成功响应" linenums="1"
+{
+  "code": 20000,
+  "message": "Ok",
+  "status": true,
+  "data": {
+    "id": 1711,
+    "name": "example.webp",
+    "ext": ".webp",
+    "url": "https://storage.bizyair.cn/inputs/20250911/abc123.webp"
+  }
+}
+```
+---
+### 查询 inputs 列表
+
+#### 请求示例
+
+```bash title="查询 inputs 列表"
+curl -X GET "https://api.bizyair.cn/x/v1/input_resource?current=1&page_size=20" \
+  -H "Authorization: Bearer {BIZYAIR_API_KEY}"
+```
+
+#### 参数说明
+
+- `current`: (Query, Optional) 分页页码。
+- `page_size`: (Query, Optional) 分页大小。
+- `ext`: (Query, Optional) 过滤的扩展名。
+- `object_key`: (Query, Optional) 过滤的对象 Key。
+
+#### 成功响应 (示例)
+
+```json title="查询 inputs 列表成功响应" linenums="1"
+{
+  "code": 20000,
+  "message": "Ok",
+  "status": true,
+  "data": {
+    "list": [
+      {
+        "id": 1711,
+        "name": "example.webp",
+        "ext": ".webp",
+        "url": "https://storage.bizyair.cn/inputs/20250911/abc123.webp"
+      }
+    ],
+    "total": 1,
+    "current": 1,
+    "page_size": 20
+  }
+}
+```
+
+## 查询用户信息
+
+```bash title="查询用户信息"
+curl -X GET "https://api.bizyair.cn/x/v1/user/metadata" \
+  -H "Authorization: Bearer {BIZYAIR_API_KEY}"
+```
+
+## 查询余额
+
+```bash title="查询余额"
+curl -X GET "https://api.bizyair.cn/y/v1/wallet" \
+  -H "Authorization: Bearer {BIZYAIR_API_KEY}"
+```

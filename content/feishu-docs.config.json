@@ -1,0 +1,58 @@
+{
+  "documents": [
+    {
+      "slug": "index",
+      "icon": "BookOpen",
+      "translations": {
+        "cn": {
+          "enabled": false,
+          "source": "",
+          "title": "文档首页",
+          "description": "从飞书同步的中文文档首页"
+        },
+        "en": {
+          "enabled": false,
+          "source": "",
+          "title": "Docs Home",
+          "description": "English docs home synced from Feishu"
+        }
+      }
+    },
+    {
+      "slug": "guide/quick-start",
+      "icon": "Rocket",
+      "translations": {
+        "cn": {
+          "enabled": false,
+          "source": "",
+          "title": "快速开始",
+          "description": "从飞书同步快速开始文档"
+        },
+        "en": {
+          "enabled": false,
+          "source": "",
+          "title": "Quick Start",
+          "description": "Quick start guide synced from Feishu"
+        }
+      }
+    },
+    {
+      "slug": "guide/authentication",
+      "icon": "KeyRound",
+      "translations": {
+        "cn": {
+          "enabled": false,
+          "source": "",
+          "title": "鉴权",
+          "description": "从飞书同步鉴权说明"
+        },
+        "en": {
+          "enabled": false,
+          "source": "",
+          "title": "Authentication",
+          "description": "Authentication guide synced from Feishu"
+        }
+      }
+    }
+  ]
+}
