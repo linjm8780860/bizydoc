@@ -87,6 +87,12 @@ function requireEnv(name: string) {
   return value;
 }
 
+function getOptionalEnv(name: string) {
+  const value = process.env[name]?.trim();
+
+  return value || undefined;
+}
+
 function extractFeishuToken(source: string) {
   const match = source.match(/\/(?:docx|doc|wiki)\/([a-zA-Z0-9]+)/);
 
@@ -429,6 +435,7 @@ async function sync() {
   const configPath = readArgValue('--config') ?? defaultConfigPath;
   const onlyLang = readArgValue('--lang') as Lang | undefined;
   const dryRun = hasArg('--dry-run');
+  const requireCredentials = hasArg('--require-credentials');
   const config = await loadConfig(configPath);
   const hasSingleDocuments = getActiveEntries(config).length > 0;
   const hasCollections = (config.collections ?? []).length > 0;
@@ -440,6 +447,22 @@ async function sync() {
   if (!hasSingleDocuments && !hasCollections) {
     console.log(
       `No Feishu documents are enabled in ${configPath}. Add source URLs and set enabled to true.`,
+    );
+    return;
+  }
+
+  const hasFeishuCredentials =
+    Boolean(getOptionalEnv('FEISHU_APP_ID')) && Boolean(getOptionalEnv('FEISHU_APP_SECRET'));
+
+  if (!hasFeishuCredentials) {
+    if (requireCredentials) {
+      throw new Error(
+        'Missing FEISHU_APP_ID or FEISHU_APP_SECRET. Provide them in the environment or .env.local.',
+      );
+    }
+
+    console.log(
+      'Skipping Feishu sync because FEISHU_APP_ID/FEISHU_APP_SECRET are not configured. Keeping existing content/docs files.',
     );
     return;
   }

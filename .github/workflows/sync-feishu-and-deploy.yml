@@ -52,7 +52,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Sync Feishu content
-        run: pnpm docs:sync-feishu -- --lang cn
+        run: pnpm docs:sync-feishu -- --lang cn --require-credentials
 
       - name: Pull Vercel project settings
         run: npx --yes vercel@latest pull --yes --environment=production --token="${VERCEL_TOKEN}"
