@@ -9,33 +9,31 @@ concurrency:
 
 jobs:
   deploy:
-    name: Sync content and deploy to Vercel
+    name: Sync content and push updates
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
     env:
       FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
       FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
     steps:
       - name: Check required secrets
         shell: bash
         run: |
           missing=0
-          for name in FEISHU_APP_ID FEISHU_APP_SECRET VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID; do
+          for name in FEISHU_APP_ID FEISHU_APP_SECRET; do
             if [ -z "${!name}" ]; then
               echo "::error::Missing GitHub secret: ${name}"
               missing=1
             fi
           done
           exit "$missing"
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
 
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -54,17 +52,26 @@ jobs:
       - name: Sync Feishu content
         run: pnpm docs:sync-feishu -- --lang cn --require-credentials
 
-      - name: Pull Vercel project settings
-        run: npx --yes vercel@latest pull --yes --environment=production --token="${VERCEL_TOKEN}"
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      - name: Detect changes
+        id: changes
+        shell: bash
+        run: |
+          if git diff --quiet -- content/docs content/docs.json; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          fi
 
-      - name: Build with Vercel
-        run: npx --yes vercel@latest build --prod --token="${VERCEL_TOKEN}"
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      - name: Commit synced content
+        if: steps.changes.outputs.has_changes == 'true'
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add content/docs content/docs.json
+          git commit -m "chore: sync Feishu docs"
 
-      - name: Deploy to Vercel
-        run: npx --yes vercel@latest deploy --prebuilt --prod --token="${VERCEL_TOKEN}"
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      - name: Push synced content
+        if: steps.changes.outputs.has_changes == 'true'
+        shell: bash
+        run: git push origin HEAD:${GITHUB_REF_NAME}

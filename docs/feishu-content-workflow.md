@@ -137,8 +137,8 @@ pnpm build
 ```txt
 读取飞书总文档
   -> 拆分并生成 content/docs/cn/*.mdx
-  -> Vercel build
-  -> Vercel production deploy
+  -> 提交回仓库
+  -> Vercel Git 集成自动部署
 ```
 
 GitHub 仓库需要配置这些 Secrets：
@@ -146,9 +146,6 @@ GitHub 仓库需要配置这些 Secrets：
 ```bash
 FEISHU_APP_ID=...
 FEISHU_APP_SECRET=...
-VERCEL_TOKEN=...
-VERCEL_ORG_ID=...
-VERCEL_PROJECT_ID=...
 ```
 
 也可以进一步把飞书事件订阅接到 Deploy Hook：

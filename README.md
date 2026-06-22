@@ -132,7 +132,7 @@ pnpm build:local
 在 GitHub Actions 里手动运行 `Sync Feishu and Deploy` 后，它会执行：
 
 ```txt
-读取飞书总文档 -> 生成中文 MDX -> Vercel build -> Vercel production deploy
+读取飞书总文档 -> 生成中文 MDX -> 提交回仓库 -> Vercel Git 集成自动部署
 ```
 
 需要在 GitHub 仓库 Secrets 配置：
@@ -140,9 +140,6 @@ pnpm build:local
 ```bash
 FEISHU_APP_ID=飞书开放平台应用 App ID
 FEISHU_APP_SECRET=飞书开放平台应用 App Secret
-VERCEL_TOKEN=Vercel 用户 token
-VERCEL_ORG_ID=Vercel 团队或个人 org id
-VERCEL_PROJECT_ID=Vercel project id
 ```
 
 也可以把飞书事件订阅关联到站点的回调地址：
@@ -151,7 +148,7 @@ VERCEL_PROJECT_ID=Vercel project id
 https://你的站点域名/api/feishu/rebuild?secret=FEISHU_REBUILD_WEBHOOK_SECRET
 ```
 
-飞书文档更新后，这个回调会触发 `VERCEL_DEPLOY_HOOK_URL`，Vercel 重新构建时会先运行 `pnpm docs:sync-feishu`，再生成站点。
+飞书文档更新后，这个回调会触发 `VERCEL_DEPLOY_HOOK_URL`。Vercel 重新构建时会先运行 `pnpm docs:sync-feishu`，再生成站点。
 
 更完整的配置步骤见 `docs/feishu-content-workflow.md`。
 
