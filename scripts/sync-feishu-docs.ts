@@ -174,18 +174,24 @@ function renderMdx({
   return `${frontmatter}\n\n${marker}\n\n${body}\n`;
 }
 
+type FeishuApiEnvelope<T> = {
+  code?: number;
+  msg?: string;
+  data?: T;
+} & T;
+
 async function feishuJson<T>(url: string, init: RequestInit = {}) {
   const response = await fetch(url, init);
   if (!response.ok) {
     throw new Error(`Feishu HTTP ${response.status}: ${await response.text()}`);
   }
 
-  const data = (await response.json()) as { code?: number; msg?: string; data?: T };
-  if (data.code !== 0) {
+  const data = (await response.json()) as FeishuApiEnvelope<T>;
+  if (typeof data.code === 'number' && data.code !== 0) {
     throw new Error(`Feishu API error ${data.code}: ${data.msg ?? 'Unknown error'}`);
   }
 
-  return data.data as T;
+  return (data.data ?? data) as T;
 }
 
 async function getTenantAccessToken() {
@@ -202,6 +208,10 @@ async function getTenantAccessToken() {
       }),
     },
   );
+
+  if (!data?.tenant_access_token) {
+    throw new Error('Feishu auth response did not include tenant_access_token.');
+  }
 
   return data.tenant_access_token;
 }
