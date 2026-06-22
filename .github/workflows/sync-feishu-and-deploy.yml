@@ -1,0 +1,70 @@
+name: Sync Feishu and Deploy
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: sync-feishu-and-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Sync content and deploy to Vercel
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
+      FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+    steps:
+      - name: Check required secrets
+        shell: bash
+        run: |
+          missing=0
+          for name in FEISHU_APP_ID FEISHU_APP_SECRET VERCEL_TOKEN VERCEL_ORG_ID VERCEL_PROJECT_ID; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Missing GitHub secret: ${name}"
+              missing=1
+            fi
+          done
+          exit "$missing"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Sync Feishu content
+        run: pnpm docs:sync-feishu -- --lang cn
+
+      - name: Pull Vercel project settings
+        run: npx --yes vercel@latest pull --yes --environment=production --token="${VERCEL_TOKEN}"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build with Vercel
+        run: npx --yes vercel@latest build --prod --token="${VERCEL_TOKEN}"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy to Vercel
+        run: npx --yes vercel@latest deploy --prebuilt --prod --token="${VERCEL_TOKEN}"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}

@@ -16,10 +16,18 @@ type TranslationConfig = {
 type DocumentConfig = {
   slug: string;
   icon?: string;
+  sourceHeading?: string;
   translations: Partial<Record<Lang, TranslationConfig>>;
 };
 
 type SyncConfig = {
+  documents?: DocumentConfig[];
+  collections?: CollectionConfig[];
+};
+
+type CollectionConfig = {
+  source: string;
+  lang?: Lang;
   documents: DocumentConfig[];
 };
 
@@ -255,7 +263,7 @@ async function loadConfig(configPath: string) {
 }
 
 function getActiveEntries(config: SyncConfig) {
-  return config.documents.flatMap((doc) =>
+  return (config.documents ?? []).flatMap((doc) =>
     langs.flatMap((lang) => {
       const translation = doc.translations[lang];
       if (!translation?.source || translation.enabled === false) return [];
@@ -265,28 +273,73 @@ function getActiveEntries(config: SyncConfig) {
   );
 }
 
-async function sync() {
-  await loadDotEnv();
+function normalizeHeading(value: string) {
+  return value.replace(/\s+/g, ' ').trim().toLowerCase();
+}
 
-  const configPath = readArgValue('--config') ?? defaultConfigPath;
-  const onlyLang = readArgValue('--lang') as Lang | undefined;
-  const dryRun = hasArg('--dry-run');
-  const config = await loadConfig(configPath);
+function trimSectionSeparators(content: string) {
+  const lines = content.replace(/\r\n/g, '\n').split('\n');
+
+  while (lines.length > 0 && (!lines[0].trim() || lines[0].trim() === '---')) {
+    lines.shift();
+  }
+
+  while (lines.length > 0 && (!lines[lines.length - 1].trim() || lines[lines.length - 1].trim() === '---')) {
+    lines.pop();
+  }
+
+  return lines.join('\n').trim();
+}
+
+function splitMarkdownByHeadings(content: string, headings: string[]) {
+  const sections = new Map<string, string>();
+  const targetHeadings = new Set(headings.map(normalizeHeading));
+  const lines = content.replace(/\r\n/g, '\n').split('\n');
+  let currentHeadingKey: string | undefined;
+  let currentLines: string[] = [];
+
+  function flush() {
+    if (!currentHeadingKey) return;
+
+    sections.set(currentHeadingKey, trimSectionSeparators(currentLines.join('\n')));
+  }
+
+  for (const line of lines) {
+    const match = line.match(/^##\s+(.+?)\s*#*\s*$/);
+    const headingKey = match ? normalizeHeading(match[1]) : undefined;
+
+    if (headingKey && targetHeadings.has(headingKey)) {
+      if (currentHeadingKey === headingKey && currentLines.every((item) => !item.trim())) {
+        currentLines.push(line);
+        continue;
+      }
+
+      flush();
+      currentHeadingKey = headingKey;
+      currentLines = [];
+      continue;
+    }
+
+    if (currentHeadingKey) {
+      currentLines.push(line);
+    }
+  }
+
+  flush();
+
+  return sections;
+}
+
+function findSectionBody(sections: Map<string, string>, heading: string) {
+  return sections.get(normalizeHeading(heading));
+}
+
+async function syncSingleDocuments(config: SyncConfig, accessToken: string, onlyLang?: Lang, dryRun = false) {
   let entries = getActiveEntries(config);
 
   if (onlyLang) {
-    if (!langs.includes(onlyLang)) throw new Error(`Unsupported language: ${onlyLang}`);
     entries = entries.filter((entry) => entry.lang === onlyLang);
   }
-
-  if (entries.length === 0) {
-    console.log(
-      `No Feishu documents are enabled in ${configPath}. Add source URLs and set enabled to true.`,
-    );
-    return;
-  }
-
-  const accessToken = await getTenantAccessToken();
 
   for (const { doc, lang, translation } of entries) {
     const source = translation.source?.trim();
@@ -316,6 +369,85 @@ async function sync() {
     await writeFile(output, mdx, 'utf8');
     console.log(`Synced ${source} -> ${output}`);
   }
+}
+
+async function syncCollections(config: SyncConfig, accessToken: string, onlyLang?: Lang, dryRun = false) {
+  for (const collection of config.collections ?? []) {
+    const lang = collection.lang ?? 'cn';
+    if (onlyLang && lang !== onlyLang) continue;
+
+    const source = collection.source.trim();
+    if (!source) continue;
+
+    const feishuDoc = await readFeishuDocument(source, accessToken);
+    const sourceHeadings = collection.documents.map((doc) => {
+      const translation = doc.translations[lang];
+
+      return doc.sourceHeading ?? translation?.title ?? doc.slug;
+    });
+    const sections = splitMarkdownByHeadings(feishuDoc.content, sourceHeadings);
+
+    for (const doc of collection.documents) {
+      const translation = doc.translations[lang];
+      if (translation?.enabled === false) continue;
+
+      const title = translation?.title ?? doc.sourceHeading ?? doc.slug;
+      const heading = doc.sourceHeading ?? title;
+      const sectionBody = findSectionBody(sections, heading);
+      if (sectionBody === undefined) {
+        throw new Error(`Missing section "${heading}" in ${source}. Update the Feishu heading or content/feishu-docs.config.json.`);
+      }
+
+      const body = normalizeMarkdown(sectionBody ?? '', title);
+      const description = translation?.description ?? inferDescription(body);
+      const icon = translation?.icon ?? doc.icon;
+      const output = path.join('content', 'docs', lang, `${doc.slug}.mdx`);
+      const mdx = renderMdx({
+        title,
+        description,
+        icon,
+        body,
+        source: `${source}#${heading}`,
+        revisionId: feishuDoc.revisionId,
+      });
+
+      if (dryRun) {
+        console.log(`[dry-run] ${source}#${heading} -> ${output}`);
+        continue;
+      }
+
+      await mkdir(path.dirname(output), { recursive: true });
+      await writeFile(output, mdx, 'utf8');
+      console.log(`Synced ${source}#${heading} -> ${output}`);
+    }
+  }
+}
+
+async function sync() {
+  await loadDotEnv();
+
+  const configPath = readArgValue('--config') ?? defaultConfigPath;
+  const onlyLang = readArgValue('--lang') as Lang | undefined;
+  const dryRun = hasArg('--dry-run');
+  const config = await loadConfig(configPath);
+  const hasSingleDocuments = getActiveEntries(config).length > 0;
+  const hasCollections = (config.collections ?? []).length > 0;
+
+  if (onlyLang) {
+    if (!langs.includes(onlyLang)) throw new Error(`Unsupported language: ${onlyLang}`);
+  }
+
+  if (!hasSingleDocuments && !hasCollections) {
+    console.log(
+      `No Feishu documents are enabled in ${configPath}. Add source URLs and set enabled to true.`,
+    );
+    return;
+  }
+
+  const accessToken = await getTenantAccessToken();
+
+  await syncSingleDocuments(config, accessToken, onlyLang, dryRun);
+  await syncCollections(config, accessToken, onlyLang, dryRun);
 }
 
 sync().catch((error) => {

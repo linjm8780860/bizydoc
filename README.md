@@ -72,7 +72,15 @@ FEISHU_REBUILD_WEBHOOK_SECRET=用于保护重构建回调的随机字符串
 VERCEL_DEPLOY_HOOK_URL=Vercel Deploy Hook 地址
 ```
 
-在 `content/feishu-docs.config.json` 里把每个页面对应到飞书文档 URL：
+当前项目已经配置为从这一篇飞书总文档同步中文内容：
+
+```txt
+https://siliconflow.feishu.cn/wiki/Y4X2wZovMivnM8kqdcjcGKwunSb
+```
+
+同步脚本会按飞书正文里的二级标题拆成多个页面，例如 `## 产品能力 / 模型广场` 会写入 `content/docs/cn/capabilities/model-plaza.mdx`。
+
+如果后续想改成“每个页面一篇飞书文档”，也可以在 `content/feishu-docs.config.json` 里把每个页面对应到独立飞书文档 URL：
 
 ```json
 {
@@ -115,7 +123,29 @@ pnpm build:local
 
 ### 自动发布
 
-可以把飞书事件订阅关联到站点的回调地址：
+仓库已包含 GitHub Actions workflow：
+
+```txt
+.github/workflows/sync-feishu-and-deploy.yml
+```
+
+在 GitHub Actions 里手动运行 `Sync Feishu and Deploy` 后，它会执行：
+
+```txt
+读取飞书总文档 -> 生成中文 MDX -> Vercel build -> Vercel production deploy
+```
+
+需要在 GitHub 仓库 Secrets 配置：
+
+```bash
+FEISHU_APP_ID=飞书开放平台应用 App ID
+FEISHU_APP_SECRET=飞书开放平台应用 App Secret
+VERCEL_TOKEN=Vercel 用户 token
+VERCEL_ORG_ID=Vercel 团队或个人 org id
+VERCEL_PROJECT_ID=Vercel project id
+```
+
+也可以把飞书事件订阅关联到站点的回调地址：
 
 ```txt
 https://你的站点域名/api/feishu/rebuild?secret=FEISHU_REBUILD_WEBHOOK_SECRET

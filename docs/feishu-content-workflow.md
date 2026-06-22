@@ -43,6 +43,24 @@ VERCEL_DEPLOY_HOOK_URL=...
 
 确保飞书应用有读取文档权限，并且对应文档已授权给该应用或应用所在组织。
 
+### 当前同步方式
+
+当前站点使用一篇飞书总文档作为中文内容源：
+
+```txt
+https://siliconflow.feishu.cn/wiki/Y4X2wZovMivnM8kqdcjcGKwunSb
+```
+
+`content/feishu-docs.config.json` 里的 `collections` 会把这篇总文档按二级标题拆成多个站点页面。维护内容时，保留这些二级标题即可：
+
+```md
+## 产品简介
+## 上手指南 / 安装
+## 产品能力 / 模型广场
+```
+
+这些标题是同步锚点；标题改名后，需要同步修改 `content/feishu-docs.config.json` 里的 `sourceHeading`。
+
 ### 接入新页面
 
 编辑 `content/feishu-docs.config.json`，新增或修改页面映射：
@@ -108,7 +126,32 @@ pnpm build
 
 ## 自动同步和重新构建
 
-推荐把飞书作为内容源，把站点构建作为发布动作：
+推荐把飞书作为内容源，把站点构建作为发布动作。当前仓库已经配置 GitHub Actions：
+
+```txt
+.github/workflows/sync-feishu-and-deploy.yml
+```
+
+在 GitHub Actions 里手动运行 `Sync Feishu and Deploy` 后会执行：
+
+```txt
+读取飞书总文档
+  -> 拆分并生成 content/docs/cn/*.mdx
+  -> Vercel build
+  -> Vercel production deploy
+```
+
+GitHub 仓库需要配置这些 Secrets：
+
+```bash
+FEISHU_APP_ID=...
+FEISHU_APP_SECRET=...
+VERCEL_TOKEN=...
+VERCEL_ORG_ID=...
+VERCEL_PROJECT_ID=...
+```
+
+也可以进一步把飞书事件订阅接到 Deploy Hook：
 
 ```txt
 飞书文档更新

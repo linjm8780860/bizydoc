@@ -9,7 +9,7 @@ export const localizedDocsContentRoute = '/:lang/llms.mdx/docs';
 
 // fill this with your actual GitHub info, for example:
 export const gitConfig = {
-  user: 'siliconflow',
-  repo: 'BizyAir',
+  user: 'linjm8780860',
+  repo: 'bizydoc',
   branch: 'main',
 };

@@ -1,58 +1,385 @@
 {
-  "documents": [
+  "collections": [
     {
-      "slug": "index",
-      "icon": "BookOpen",
-      "translations": {
-        "cn": {
-          "enabled": false,
-          "source": "",
-          "title": "文档首页",
-          "description": "从飞书同步的中文文档首页"
+      "source": "https://siliconflow.feishu.cn/wiki/Y4X2wZovMivnM8kqdcjcGKwunSb",
+      "lang": "cn",
+      "documents": [
+        {
+          "slug": "index",
+          "sourceHeading": "产品简介",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "产品简介",
+              "description": "BizyAir 平台与文档总览。"
+            }
+          }
         },
-        "en": {
-          "enabled": false,
-          "source": "",
-          "title": "Docs Home",
-          "description": "English docs home synced from Feishu"
-        }
-      }
-    },
-    {
-      "slug": "guide/quick-start",
-      "icon": "Rocket",
-      "translations": {
-        "cn": {
-          "enabled": false,
-          "source": "",
-          "title": "快速开始",
-          "description": "从飞书同步快速开始文档"
+        {
+          "slug": "guide/quick-start",
+          "sourceHeading": "上手指南 / 安装",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "在线使用",
+              "description": "BizyAir 在线使用与本地安装指引。"
+            }
+          }
         },
-        "en": {
-          "enabled": false,
-          "source": "",
-          "title": "Quick Start",
-          "description": "Quick start guide synced from Feishu"
-        }
-      }
-    },
-    {
-      "slug": "guide/authentication",
-      "icon": "KeyRound",
-      "translations": {
-        "cn": {
-          "enabled": false,
-          "source": "",
-          "title": "鉴权",
-          "description": "从飞书同步鉴权说明"
+        {
+          "slug": "guide/authentication",
+          "sourceHeading": "上手指南 / 注册账号",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "注册账号",
+              "description": "BizyAir 账号与鉴权说明。"
+            }
+          }
         },
-        "en": {
-          "enabled": false,
-          "source": "",
-          "title": "Authentication",
-          "description": "Authentication guide synced from Feishu"
+        {
+          "slug": "capabilities/model-plaza",
+          "sourceHeading": "产品能力 / 模型广场",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "模型广场",
+              "description": "模型广场功能说明。"
+            }
+          }
+        },
+        {
+          "slug": "capabilities/workflow-plaza",
+          "sourceHeading": "产品能力 / 工作流广场",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "工作流广场",
+              "description": "工作流广场功能说明。"
+            }
+          }
+        },
+        {
+          "slug": "capabilities/sharecode",
+          "sourceHeading": "产品能力 / 分享直达码",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "分享直达码",
+              "description": "分享直达码说明。"
+            }
+          }
+        },
+        {
+          "slug": "capabilities/message-box",
+          "sourceHeading": "产品能力 / 消息盒子",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "消息盒子",
+              "description": "消息盒子功能说明。"
+            }
+          }
+        },
+        {
+          "slug": "capabilities/model-details",
+          "sourceHeading": "产品能力 / 模型详情页",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "模型详情页",
+              "description": "模型详情页说明。"
+            }
+          }
+        },
+        {
+          "slug": "api/asynctask-tutorial",
+          "sourceHeading": "API / 异步查询使用教程",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "异步查询使用教程",
+              "description": "BizyAir 异步查询使用教程。"
+            }
+          }
+        },
+        {
+          "slug": "api/webhook-tutorial",
+          "sourceHeading": "API / WebHook使用教程",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "WebHook 使用教程",
+              "description": "BizyAir WebHook 使用教程。"
+            }
+          }
+        },
+        {
+          "slug": "api/upload-tutorial",
+          "sourceHeading": "API / 文件上传使用教程",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "文件上传使用教程",
+              "description": "BizyAir 文件上传使用教程。"
+            }
+          }
+        },
+        {
+          "slug": "api/api-reference",
+          "sourceHeading": "API / API参考",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "API 参考",
+              "description": "BizyAir API 参考文档。"
+            }
+          }
+        },
+        {
+          "slug": "api/response-codes",
+          "sourceHeading": "API / 返回码说明",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "错误码说明",
+              "description": "BizyAir 错误码说明。"
+            }
+          }
+        },
+        {
+          "slug": "tools/CLI",
+          "sourceHeading": "工具 / 命令行工具",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "命令行工具",
+              "description": "BizyAir CLI 工具说明。"
+            }
+          }
+        },
+        {
+          "slug": "price/index",
+          "sourceHeading": "BizyAir 价格 / 收费简介",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "BizyAir 计费简介",
+              "description": "BizyAir 计费简介。"
+            }
+          }
+        },
+        {
+          "slug": "price/instruction",
+          "sourceHeading": "BizyAir 价格 / 充值指南",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "充值指南",
+              "description": "BizyAir 充值与开票说明。"
+            }
+          }
+        },
+        {
+          "slug": "price/price",
+          "sourceHeading": "BizyAir 价格 / 价格参考",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "节点价格参考",
+              "description": "BizyAir 节点价格参考。"
+            }
+          }
+        },
+        {
+          "slug": "price/FAQ",
+          "sourceHeading": "BizyAir 价格 / FAQ",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "价格 FAQ",
+              "description": "BizyAir 计费 FAQ。"
+            }
+          }
+        },
+        {
+          "slug": "terms/terms",
+          "sourceHeading": "条款与协议 / 充值服务协议",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "BizyAir 充值服务协议",
+              "description": "BizyAir 充值服务协议。"
+            }
+          }
+        },
+        {
+          "slug": "FAQ/index",
+          "sourceHeading": "FAQ / 索引",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "FAQ 常见问题",
+              "description": "BizyAir 常见问题汇总。"
+            }
+          }
+        },
+        {
+          "slug": "FAQ/upload-model",
+          "sourceHeading": "FAQ / 如何上传模型",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "如何上传模型",
+              "description": "如何上传模型。"
+            }
+          }
+        },
+        {
+          "slug": "FAQ/api",
+          "sourceHeading": "FAQ / 如何调用 API",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "如何 API 调用",
+              "description": "如何 API 调用。"
+            }
+          }
+        },
+        {
+          "slug": "FAQ/gift",
+          "sourceHeading": "FAQ / 如何使用兑换码",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "如何使用兑换码",
+              "description": "如何使用兑换码。"
+            }
+          }
+        },
+        {
+          "slug": "FAQ/invoice",
+          "sourceHeading": "FAQ / 如何发票开具",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "如何发票开具",
+              "description": "如何发票开具。"
+            }
+          }
+        },
+        {
+          "slug": "FAQ/AI-application",
+          "sourceHeading": "FAQ / 如何发布AI应用",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "如何发布 AI 应用",
+              "description": "如何发布 AI 应用。"
+            }
+          }
+        },
+        {
+          "slug": "FAQ/consuption-details",
+          "sourceHeading": "FAQ / 如何查看消费明细",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "如何查看消费明细",
+              "description": "如何查看消费明细。"
+            }
+          }
+        },
+        {
+          "slug": "FAQ/coupon",
+          "sourceHeading": "FAQ / 如何领取优惠券",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "如何领取优惠券",
+              "description": "如何领取优惠券。"
+            }
+          }
+        },
+        {
+          "slug": "FAQ/API-pricelist",
+          "sourceHeading": "FAQ / 如何查看API价格表",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "如何查看 API 价格表",
+              "description": "如何查看 API 价格表。"
+            }
+          }
+        },
+        {
+          "slug": "FAQ/feedback",
+          "sourceHeading": "FAQ / 如何意见反馈",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "如何意见反馈",
+              "description": "如何意见反馈。"
+            }
+          }
+        },
+        {
+          "slug": "FAQ/error-code",
+          "sourceHeading": "FAQ / 如何查看错误码说明",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "如何查看错误码说明",
+              "description": "如何查看错误码说明。"
+            }
+          }
+        },
+        {
+          "slug": "FAQ/mcp",
+          "sourceHeading": "FAQ / 如何查看MCP",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "如何查看 MCP",
+              "description": "如何查看 MCP。"
+            }
+          }
+        },
+        {
+          "slug": "FAQ/view-works",
+          "sourceHeading": "FAQ / 如何查看作品",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "如何查看作品",
+              "description": "如何查看作品。"
+            }
+          }
+        },
+        {
+          "slug": "FAQ/regenerate",
+          "sourceHeading": "FAQ / 如何再次生成",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "如何再次生成",
+              "description": "如何再次生成。"
+            }
+          }
+        },
+        {
+          "slug": "FAQ/start",
+          "sourceHeading": "FAQ / 上手使用教程",
+          "translations": {
+            "cn": {
+              "enabled": true,
+              "title": "上手使用教程",
+              "description": "上手使用教程。"
+            }
+          }
         }
-      }
+      ]
     }
-  ]
+  ],
+  "documents": []
 }
